@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>KimchiOne Korean – 한국어 & 한국문화 클래스</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ====== 배경 Liquid Canvas 영역 ====== */
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      color: #202124;
+      /* 캔버스가 깔리지만, 깜빡임 방지를 위해 어두운 배경 */
+      background-color: #000;
+    }
+
+    /* LiquidBackground용 래퍼 */
+    #app {
+      position: fixed;
+      inset: 0;
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1; /* 콘텐츠 뒤에 깔리도록 */
+    }
+
+    #canvas {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      overflow: hidden;
+    }
+
+    /* ====== 실제 페이지 콘텐츠 래퍼 ====== */
+    .page {
+      position: relative;
+      z-index: 1; /* 캔버스 위로 */
+      min-height: 100vh;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.92) 0%,
+        rgba(255, 255, 255, 0.97) 25%,
+        rgba(255, 255, 255, 0.98) 100%
+      );
+      backdrop-filter: blur(6px);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .section {
+      padding: 72px 0;
+    }
+
+    .section-alt {
+      padding: 72px 0;
+      background-color: rgba(248, 249, 250, 0.92);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .section-header h2 {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 4px;
+    }
+
+    .section-header p {
+      margin: 0;
+      color: #5f6368;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 24px;
+    }
+
+    .two-cols {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .three-cols {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    /* ====== 상단 네비 (Google 스타일) ====== */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .logo-dot-red {
+      background-color: #ea4335;
+    }
+
+    .logo-dot-yellow {
+      background-color: #fbbc05;
+    }
+
+    .logo-dot-green {
+      background-color: #34a853;
+    }
+
+    .logo-text {
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #5f6368;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .nav-links a:hover {
+      background-color: #f1f3f4;
+      color: #202124;
+    }
+
+    .nav-cta {
+      background-color: #1a73e8;
+      color: #ffffff !important;
+    }
+
+    .nav-cta:hover {
+      background-color: #1664c4;
+    }
+
+    /* ====== 히어로 영역 (이미지 들어갈 자리 포함) ====== */
+    .hero {
+      padding: 64px 0 56px;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: center;
+    }
+
+    .hero-text h1 {
+      font-size: 40px;
+      margin: 0 0 12px;
+      font-weight: 700;
+    }
+
+    .hero-subtitle {
+      margin: 0 0 20px;
+      color: #5f6368;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .hero-meta {
+      font-size: 13px;
+      color: #5f6368;
+    }
+
+    .hero-visual {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .hero-card {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 20px 22px;
+      box-shadow: 0 8px 24px rgba(60, 64, 67, 0.15);
+      max-width: 360px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: #e8f0fe;
+      color: #1a73e8;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .hero-card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .hero-card p {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: #5f6368;
+    }
+
+    .hero-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      color: #5f6368;
+    }
+
+    /* ====== 버튼 ====== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.16s ease, color 0.16s ease,
+        border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .btn.primary {
+      background-color: #1a73e8;
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+    }
+
+    .btn.primary:hover {
+      background-color: #1664c4;
+      box-shadow: 0 2px 4px rgba(60, 64, 67, 0.3);
+    }
+
+    .btn.ghost {
+      background-color: #ffffff;
+      color: #1a73e8;
+      border-color: #d2e3fc;
+    }
+
+    .btn.ghost:hover {
+      background-color: #e8f0fe;
+    }
+
+    .btn.full-width {
+      width: 100%;
+    }
+
+    /* ====== 카드 공통 ====== */
+    .card {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 20px 22px;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
+    }
+
+    .card-soft {
+      background-color: #f8f9fa;
+      border-color: #e0e0e0;
+      box-shadow: none;
+    }
+
+    .about-list,
+    .dot-list {
+      margin: 12px 0 0;
+      padding-left: 18px;
+      font-size: 14px;
+      color: #5f6368;
+    }
+
+    /* ====== 이미지 갤러리 섹션 ====== */
+    .image-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .image-card {
+      border-radius: 16px;
+      overflow: hidden;
+      background-color: #f1f3f4;
+      border: 1px solid #e0e0e0;
+    }
+
+    .image-card img {
+      display: block;
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .image-card .caption {
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #5f6368;
+    }
+
+    /* ====== 영상 섹션 ====== */
+    .video-card {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .video-wrapper {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(60, 64, 67, 0.3);
+      border: 1px solid #e0e0e0;
+    }
+
+    .video-wrapper iframe {
+      width: 100%;
+      height: 430px;
+      border: 0;
+      display: block;
+    }
+
+    .video-placeholder {
+      padding: 24px;
+      border-radius: 18px;
+      border: 1px dashed #d2d2d2;
+      text-align: center;
+      background-color: #f8f9fa;
+      font-size: 14px;
+      color: #5f6368;
+    }
+
+    /* ====== 문의 폼 ====== */
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .contact-form label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      border-radius: 10px;
+      border: 1px solid #dadce0;
+      padding: 8px 10px;
+      font: inherit;
+      resize: vertical;
+    }
+
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.2);
+    }
+
+    .contact-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #5f6368;
+    }
+
+    /* ====== 푸터 ====== */
+    .footer {
+      border-top: 1px solid #e0e0e0;
+      padding: 16px 0 20px;
+      background-color: rgba(255, 255, 255, 0.96);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 12px;
+      color: #5f6368;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 12px;
+    }
+
+    .footer-links a {
+      text-decoration: none;
+      color: #5f6368;
+    }
+
+    .footer-links a:hover {
+      color: #1a73e8;
+    }
+
+    .footer-copy {
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ====== 반응형 ====== */
+    @media (max-width: 840px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        justify-content: flex-start;
+      }
+
+      .nav-links {
+        display: none; /* 필요하면 모바일 메뉴로 바꾸기 */
+      }
+
+      .section,
+      .section-alt {
+        padding: 56px 0;
+      }
+
+      .video-wrapper iframe {
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Liquid Background 캔버스 (마우스 커서 반응 배경) -->
+  <div id="app">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- 실제 컨텐츠 페이지 -->
+  <div class="page">
+    <!-- 헤더 / 네비게이션 -->
+    <header class="top-nav">
+      <div class="nav-inner container">
+        <div class="logo">
+          <span class="logo-dot logo-dot-red"></span>
+          <span class="logo-dot logo-dot-yellow"></span>
+          <span class="logo-dot logo-dot-green"></span>
+          <span class="logo-text">KimchiOne Korean</span>
+        </div>
+        <nav class="nav-links">
+          <a href="#about">선생님 소개</a>
+          <a href="#gallery">이미지</a>
+          <a href="#video">브랜드 영상</a>
+          <a href="#contact" class="nav-cta">문의하기</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- 히어로 영역 (텍스트 + 오른쪽에 설명 카드 / 추후 이미지 가능) -->
+    <section class="hero">
+      <div class="hero-inner container">
+        <div class="hero-text">
+          <h1>Learn Korean,<br />Feel Korea.</h1>
+          <p class="hero-subtitle">
+            한국어, 한국문화, 그리고 김치를 사랑하는 <strong>김치원</strong> 선생님과 함께<br />
+            생동감 있는 한국어 여정을 시작해보세요.
+          </p>
+          <div class="hero-actions">
+            <a href="#contact" class="btn primary">체험 수업 문의하기</a>
+            <a href="#video" class="btn ghost">브랜드 영상 보기</a>
+          </div>
+          <p class="hero-meta">
+            1:1 온라인 수업 · K-푸드 & K-컬처 기반 커리큘럼 · 전세계 수강 가능
+          </p>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-card">
+            <div class="hero-badge">한글 & 김치로 배우는 한국어</div>
+            <h2>“가–나–다”가<br />문화와 연결되는 수업</h2>
+            <p>
+              한글과 단어를 외우는 것을 넘어서,<br />
+              실제 한국인의 삶과 음식, 문화 속에서 자연스럽게 익히는 수업입니다.
+            </p>
+            <ul class="hero-list">
+              <li>Zoom 라이브 수업</li>
+              <li>수업 후 PDF & 복습 퀴즈</li>
+              <li>레벨별 맞춤 커리큘럼 (초급–중급–TOPIK)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 선생님 소개 -->
+    <section id="about" class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2>선생님 소개</h2>
+          <p>Teacher & Brand Story</p>
+        </div>
+        <div class="grid two-cols">
+          <div class="card">
+            <h3>안녕하세요, 김치원입니다 👋</h3>
+            <p>
+              한국의 맛과 문화, 그리고 언어를 전 세계 친구들에게 알리고 싶은 한국어 튜터입니다.
+              저는 한국어 학습이 단순한 <strong>문법 공부</strong>가 아니라,
+              <strong>문화 · 음식 · 라이프스타일</strong>을 함께 느끼는 여정이라고 생각해요.
+            </p>
+            <p>
+              수업에서는 한글 자음·모음부터 K-푸드, 드라마, 일상 표현까지,
+              실제 한국인이 쓰는 표현을 중심으로 재미있게 배웁니다.
+            </p>
+            <ul class="about-list">
+              <li>🇰🇷 한국어 & 한국문화 전문 튜터</li>
+              <li>🌶 K-푸드(김치, 한식)를 활용한 표현 학습</li>
+              <li>💬 영어로 설명 가능 (English support)</li>
+              <li>🌍 다양한 국가 수강생과 온라인 수업 경험</li>
+            </ul>
+          </div>
+
+          <!-- 여기에 프로필 이미지 추가 가능 -->
+          <div class="card card-soft">
+            <h3>프로필 이미지 / 브랜딩 이미지 자리</h3>
+            <p style="font-size:14px; color:#5f6368;">
+              여기에 선생님 얼굴 사진, 일러스트, 또는 김치/한글 브랜딩 이미지를 넣을 수 있습니다.
+            </p>
+            <!-- 실제 이미지가 생기면 src 교체 -->
+            <div class="image-card">
+              <img src="https://via.placeholder.com/600x350?text=Teacher+Image" alt="Teacher Image Placeholder" />
+              <div class="caption">예시 이미지 – 추후 실제 사진이나 일러스트로 교체</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 이미지 갤러리 섹션 -->
+    <section id="gallery" class="section section-alt">
+      <div class="container">
+        <div class="section-header">
+          <h2>이미지 갤러리</h2>
+          <p>클래스 분위기 · 한글 콘텐츠 · 김치&한식 이미지</p>
+        </div>
+
+        <div class="image-gallery">
+          <!-- 각 카드에 실제 이미지를 채워 넣으면 됨 -->
+          <div class="image-card">
+            <img src="https://via.placeholder.com/600x400?text=Korean+Class" alt="Korean Class" />
+            <div class="caption">온라인 수업 화면 캡처 또는 수업 분위기 사진</div>
+          </div>
+          <div class="image-card">
+            <img src="https://via.placeholder.com/600x400?text=Hangul+Content" alt="Hangul Content" />
+            <div class="caption">한글 콘텐츠, 슬라이드, 교재 이미지</div>
+          </div>
+          <div class="image-card">
+            <img src="https://via.placeholder.com/600x400?text=Kimchi+Food" alt="Kimchi" />
+            <div class="caption">김치/한식 사진 – K-푸드 기반 수업 소개용</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 브랜드 홍보 영상 섹션 -->
+    <section id="video" class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2>브랜드 홍보 영상</h2>
+          <p>Brand Promo Video</p>
+        </div>
+
+        <div class="card video-card">
+          <!-- 실제 유튜브 영상이 생기면 아래 iframe의 src만 교체하면 됨 -->
+          <!-- 예시: https://www.youtube.com/watch?v=VIDEO_ID -->
+          <div class="video-wrapper">
+            <!-- placeholder: 아직 영상 없으면 아래 블럭만 사용 -->
+            <!-- 영상 생기면 이 블럭 삭제하고 iframe 사용 -->
+            <div class="video-placeholder">
+              아직 홍보 영상이 준비되지 않았다면 이 영역을 썸네일 이미지나
+              “Coming soon” 텍스트로 사용해도 됩니다.<br />
+              영상이 생기면 아래 예시 iframe 코드의 src에 유튜브 링크를 넣으세요.
+            </div>
+
+            <!-- 예시 iframe (주석 해제 후 src를 실제 영상으로 변경) -->
+            <!--
+            <iframe
+              src="https://www.youtube.com/embed/VIDEO_ID"
+              title="KimchiOne Korean Promo"
+              allowfullscreen
+            ></iframe>
+            -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 문의하기 섹션 -->
+    <section id="contact" class="section section-alt">
+      <div class="container">
+        <div class="section-header">
+          <h2>문의하기</h2>
+          <p>Contact & Trial Lesson</p>
+        </div>
+        <div class="grid two-cols">
+          <div class="card">
+            <h3>체험 수업 / 수강 문의</h3>
+            <p>
+              아래 폼을 작성해 주시면 가능한 시간과 수업 방식에 대해 메일로
+              안내 드릴게요. 영어 또는 한국어 모두 가능합니다.
+            </p>
+            <ul class="dot-list">
+              <li>1:1 체험 수업 가능</li>
+              <li>레벨 진단 후 커리큘럼 제안</li>
+              <li>시차 고려한 스케줄 조율</li>
+            </ul>
+          </div>
+          <div class="card card-soft">
+            <!-- 실제 운영 시: action에 Google Form / 백엔드 등 연결 -->
+            <form class="contact-form">
+              <label>
+                이름 / Name
+                <input type="text" name="name" placeholder="Your name" />
+              </label>
+              <label>
+                이메일 / Email
+                <input type="email" name="email" placeholder="you@example.com" />
+              </label>
+              <label>
+                한국어 레벨
+                <select name="level">
+                  <option value="beginner">Beginner (초급)</option>
+                  <option value="intermediate">Intermediate (중급)</option>
+                  <option value="advanced">Advanced (고급)</option>
+                  <option value="not-sure">Not sure (잘 모르겠어요)</option>
+                </select>
+              </label>
+              <label>
+                메시지 / Message
+                <textarea
+                  name="message"
+                  rows="4"
+                  placeholder="원하는 수업 스타일, 가능한 요일/시간 등을 남겨주세요."
+                ></textarea>
+              </label>
+              <button type="submit" class="btn primary full-width">
+                문의 내용 보내기 (데모용 버튼)
+              </button>
+              <p class="contact-note">
+                실제 운영 시 이 폼은 Google Form, 이메일 링크, 또는 별도 폼 처리 로직으로 연결할 수 있습니다.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div class="footer-left">
+          <span class="logo-text">KimchiOne Korean</span>
+          <span class="footer-copy">© 2025 KimchiOne. All rights reserved.</span>
+        </div>
+        <div class="footer-links">
+          <!-- 실제 SNS 링크로 교체 -->
+          <a href="#">Instagram</a>
+          <a href="#">Threads</a>
+          <a href="#">YouTube</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Liquid Background 스크립트: 마우스 커서 움직이는 효과 -->
+  <script type="module">
+    import LiquidBackground from 'https://cdn.jsdelivr.net/npm/threejs-components@0.0.22/build/backgrounds/liquid1.min.js';
+
+    const app = LiquidBackground(document.getElementById('canvas'));
+
+    // 배경 이미지 (원하면 네 이미지로 교체 가능)
+    app.loadImage('https://assets.codepen.io/33787/liquid.webp');
+
+    // 재질 느낌 (메탈/거칠기 조정)
+    app.liquidPlane.material.metalness = 0.75;
+    app.liquidPlane.material.roughness = 0.25;
+
+    // 물결 강도 조절
+    app.liquidPlane.uniforms.displacementScale.value = 5;
+
+    // 비처럼 떨어지는 효과 끔
+    app.setRain(false);
+  </script>
+</body>
+</html>
